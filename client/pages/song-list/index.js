@@ -1,53 +1,134 @@
 import { useEffect, useRef, useState } from 'react'
 import ReactPlayer from 'react-player/youtube'
 import * as vtt from 'videojs-vtt.js'
+import { htmlToText } from 'html-to-text' // 需要安装 `html-to-text`
+
+import { MdOutlineReplay } from 'react-icons/md'
 
 export default function Index() {
   const playerRef = useRef(null) // 创建一个 ref 来访问 player 实例
-  const [subtitles, setSubtitles] = useState([])
+  const [subtitles, setSubtitles] = useState({ chinese: [], japanese: [] })
   const [currentTime, setCurrentTime] = useState(0)
-  const [currentSubtitle, setCurrentSubtitle] = useState('')
+  const [currentSubtitle, setCurrentSubtitle] = useState({
+    chinese: '',
+    japanese: '',
+  })
+  const [currentIndex, setCurrentIndex] = useState(null)
+  const [isLoop, setIsLoop] = useState(false)
+
+  // 加载字幕
+  const fetchSubtitles = async () => {
+    try {
+      const [chineseResponse, japaneseResponse] = await Promise.all([
+        fetch('/subtitles/レオ-THE FIRST TAKE-Chinese.vtt'),
+        fetch('/subtitles/レオ-THE FIRST TAKE.vtt'),
+      ])
+
+      const chineseVttText = await chineseResponse.text()
+      const japaneseVttText = await japaneseResponse.text()
+
+      const parseVTT = (vttText) => {
+        return new Promise((resolve) => {
+          const cues = []
+          const parser = new vtt.WebVTT.Parser(
+            window,
+            vtt.WebVTT.StringDecoder()
+          )
+          parser.oncue = (cue) => {
+            const cleanedText = htmlToText(cue.text, { wordwrap: false })
+            cues.push(new VTTCue(cue.startTime, cue.endTime, cleanedText))
+          }
+          parser.parse(vttText)
+          parser.flush()
+          resolve(cues)
+        })
+      }
+
+      const [chineseSubtitles, japaneseSubtitles] = await Promise.all([
+        parseVTT(chineseVttText),
+        parseVTT(japaneseVttText),
+      ])
+
+      setSubtitles({ chinese: chineseSubtitles, japanese: japaneseSubtitles })
+    } catch (error) {
+      console.error('Failed to load subtitles:', error)
+    }
+  }
+
+  // 跳至上一句
+  const handleSkipToPrevious = () => {
+    const previousSubtitle = subtitles.chinese
+      .filter((subtitle) => subtitle.endTime < currentTime)
+      .reduce((nearest, subtitle) => {
+        if (
+          !nearest ||
+          Math.abs(subtitle.endTime - currentTime) <
+            Math.abs(nearest.endTime - currentTime)
+        ) {
+          return subtitle
+        }
+        return nearest
+      }, null)
+
+    if (previousSubtitle) {
+      playerRef.current.seekTo(previousSubtitle.startTime)
+    }
+  }
+
+  // 跳至下一句
+  const handleSkipToNext = () => {
+    const nextSubtitle = subtitles.chinese
+      .filter((subtitle) => subtitle.startTime > currentTime)
+      .reduce((nearest, subtitle) => {
+        if (
+          !nearest ||
+          Math.abs(subtitle.startTime - currentTime) <
+            Math.abs(nearest.startTime - currentTime)
+        ) {
+          return subtitle
+        }
+        return nearest
+      }, null)
+
+    if (nextSubtitle) {
+      playerRef.current.seekTo(nextSubtitle.startTime)
+    }
+  }
+
+  const handleToggleLoop = () => {
+    setIsLoop(!isLoop)
+  }
 
   useEffect(() => {
-    const fetchSubtitles = async () => {
-      try {
-        // const response = await fetch(
-        //   'https://bitdash-a.akamaihd.net/content/sintel/subtitles/subtitles_en.vtt'
-        // )
-        // const vttText = await response.text()
-        const response = await fetch('/subtitles/reo_the_first_take.vtt')
-        const vttText = await response.text()
-        // 创建一个 WebVTT 解析器
-        const parser = new vtt.WebVTT.Parser(window, vtt.WebVTT.StringDecoder())
-
-        const cues = []
-        parser.oncue = (cue) => {
-          // 将每个字幕条目转换为 VTTCue 对象
-          const vttCue = new VTTCue(cue.startTime, cue.endTime, cue.text)
-          cues.push(vttCue)
-          console.log(
-            `Parsed Cue: Start ${cue.startTime}, End ${cue.endTime}, Text: ${cue.text}`
-          )
-        }
-        parser.parse(vttText)
-        parser.flush()
-        console.log(cues)
-        setSubtitles(cues)
-      } catch (error) {
-        console.error('Failed to load subtitles:', error)
-      }
-    }
-
     fetchSubtitles()
   }, [])
 
+  // 更新字幕
   useEffect(() => {
-    // 根據當前時間更新字幕
-    const cue = subtitles.find(
-      (subtitle) =>
-        currentTime >= subtitle.startTime && currentTime <= subtitle.endTime
-    )
-    setCurrentSubtitle(cue ? cue.text : '')
+    const earlyPlaybackTime = 0.8
+
+    const getCurrentSubtitle = (subtitles) => {
+      const currentSubtitleIndex = subtitles.findIndex(
+        (subtitle) =>
+          currentTime >= subtitle.startTime - earlyPlaybackTime &&
+          currentTime <= subtitle.endTime - earlyPlaybackTime
+      )
+
+      if (currentSubtitleIndex !== -1) {
+        const current = subtitles[currentSubtitleIndex]
+        const next = subtitles[currentSubtitleIndex + 1]
+        const shouldShowNext = next && next.startTime - current.endTime <= 3
+
+        return [current ? current.text : '', shouldShowNext ? next.text : '']
+      }
+
+      return ['', '']
+    }
+
+    setCurrentSubtitle({
+      chinese: getCurrentSubtitle(subtitles.chinese),
+      japanese: getCurrentSubtitle(subtitles.japanese),
+    })
   }, [currentTime, subtitles])
 
   return (
@@ -59,27 +140,41 @@ export default function Index() {
           controls
           width="640px"
           height="360px"
+          playing={true}
+          loop={isLoop}
           onProgress={({ playedSeconds }) => setCurrentTime(playedSeconds)}
         />
       </div>
 
-      <div>
-        {currentSubtitle && (
-          <div
-          // style={{
-          //   position: 'absolute',
-          //   bottom: '50px',
-          //   width: '100%',
-          //   textAlign: 'center',
-          //   color: 'white',
-          //   backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          //   padding: '10px',
-          //   fontSize: '18px',
-          // }}
+      <div
+        style={{ position: 'relative', marginTop: '10px', textAlign: 'center' }}
+      >
+        <div style={{ marginBottom: '5px' }}>
+          <strong>中文字幕:</strong> {currentSubtitle.chinese[0]}
+        </div>
+        <div style={{ marginBottom: '5px' }}>
+          <strong>中文下一句:</strong> {currentSubtitle.chinese[1]}
+        </div>
+        <div style={{ marginBottom: '5px' }}>
+          <strong>日文字幕:</strong> {currentSubtitle.japanese[0]}
+        </div>
+        <div style={{ marginBottom: '5px' }}>
+          <strong>日文下一句:</strong> {currentSubtitle.japanese[1]}
+        </div>
+        <div>
+          <button
+            onClick={handleSkipToPrevious}
+            style={{ marginRight: '10px' }}
           >
-            字幕: {currentSubtitle}
-          </div>
-        )}
+            上一句
+          </button>
+          <button onClick={handleSkipToNext} style={{ marginRight: '10px' }}>
+            下一句
+          </button>
+          <button onClick={handleToggleLoop}>
+            <MdOutlineReplay style={{ color: isLoop ? 'red' : '' }} />
+          </button>
+        </div>
       </div>
     </>
   )

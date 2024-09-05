@@ -10,6 +10,7 @@ export default function Index() {
   const [title, setTitle] = useState('')
   const [videoImgPath, setVideoImgPath] = useState('')
   const [VideoDur, setVideoDur] = useState('')
+  const [hasSubtitle, setHasSubtitle] = useState('false')
 
   // 取得輸入進去 input 的 YouTube 網址的 vid
   const getQueryParamV = (url) => {
@@ -52,15 +53,18 @@ export default function Index() {
       // 提取所需的字段
       const title = item.snippet.title
       setTitle(title)
-      const defaultThumbnailUrl = item.snippet.thumbnails.standard.url
+      const defaultThumbnailUrl = item.snippet.thumbnails.medium.url
       setVideoImgPath(defaultThumbnailUrl)
       const duration = item.contentDetails.duration
       setVideoDur(duration)
+      const hasSub = item.contentDetails.caption
+      setHasSubtitle(hasSub)
     } catch (error) {
       console.error('Error:', error)
       // 在這裡處理錯誤
     }
   }
+ 
 
   useEffect(() => {}, [])
   return (
@@ -84,6 +88,8 @@ export default function Index() {
       <img src={videoImgPath} alt="" />
       <div>標題:{title}</div>
       <div>影片長度:{VideoDur}</div>
+      <div>字幕:{hasSubtitle === 'true' ? '有字幕' : '沒字幕'}</div>
+      <button>傳進資料庫</button>
     </>
   )
 }

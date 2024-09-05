@@ -27,3 +27,7 @@ export const getVideos = async (id) => {
     throw error // 重新拋出錯誤，以便調用者可以進行進一步處理
   }
 }
+
+export const postVideoInfo = async (video = {}) => {
+  return await axiosInstance.post('/videos', video)
+}

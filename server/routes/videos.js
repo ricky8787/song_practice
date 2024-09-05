@@ -10,7 +10,7 @@ import { getIdParam } from '#db-helpers/db-tool.js'
 // 資料庫使用
 import { Op } from 'sequelize'
 import sequelize from '#configs/db.js'
-const { User } = sequelize.models
+const { YT_Videos } = sequelize.models
 
 // 驗証加密密碼字串用
 import { compareHash } from '#db-helpers/password-hash.js'
@@ -35,76 +35,55 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 // multer的設定值 - END
 
-// GET - 得到所有會員資料
+// GET - 得到所有影片資料
 router.get('/', async function (req, res) {
-  const users = await User.findAll({ logging: console.log })
+  const videos = await YT_Videos.findAll({ logging: console.log })
   // 處理如果沒找到資料
 
   // 標準回傳JSON
-  return res.json({ status: 'success', data: { users } })
+  return res.json({ status: 'success', data: { videos } })
 })
 
 // GET - 得到單筆資料(注意，有動態參數時要寫在GET區段最後面)
-router.get('/:id', authenticate, async function (req, res) {
+router.get('/:id', async function (req, res) {
   // 轉為數字
   const id = getIdParam(req)
 
-  // 檢查是否為授權會員，只有授權會員可以存取自己的資料
-  if (req.user.id !== id) {
-    return res.json({ status: 'error', message: '存取會員資料失敗' })
-  }
-
-  const user = await User.findByPk(id, {
+  const video = await YT_Videos.findByPk(id, {
     raw: true, // 只需要資料表中資料
   })
 
-  // 不回傳密碼
-  delete user.password
-
-  return res.json({ status: 'success', data: { user } })
+  return res.json({ status: 'success', data: { video } })
 })
 
 // POST - 新增會員資料
 router.post('/', async function (req, res) {
-  // req.body資料範例
-  // {
-  //     "name":"金妮",
-  //     "email":"ginny@test.com",
-  //     "username":"ginny",
-  //     "password":"12345"
-  // }
-
-  // 要新增的會員資料
-  const newUser = req.body
+  const newVideo = req.body
 
   // 檢查從前端來的資料哪些為必要(name, username...)
-  if (
-    !newUser.username ||
-    !newUser.email ||
-    !newUser.name ||
-    !newUser.password
-  ) {
+  if (!newVideo.title) {
     return res.json({ status: 'error', message: '缺少必要資料' })
   }
 
   // 執行後user是建立的會員資料，created為布林值
   // where指的是不可以有相同的資料，如username或是email不能有相同的
   // defaults用於建立新資料用需要的資料
-  const [user, created] = await User.findOrCreate({
+  const [video, created] = await YT_Videos.findOrCreate({
     where: {
-      [Op.or]: [{ username: newUser.username }, { email: newUser.email }],
+      [Op.or]: [{ title: newVideo.title }],
     },
     defaults: {
-      name: newUser.name,
-      password: newUser.password,
-      username: newUser.username,
-      email: newUser.email,
+      title: newVideo.title,
+      img_path: newVideo.img_path,
+      subtitle: newVideo.subtitle,
+      duration: newVideo.duration,
+      url: newVideo.url,
     },
   })
 
   // 新增失敗 created=false 代表沒新增
   if (!created) {
-    return res.json({ status: 'error', message: '建立會員失敗' })
+    return res.json({ status: 'error', message: '新增影片失敗' })
   }
 
   // 成功建立會員的回應

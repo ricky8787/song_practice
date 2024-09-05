@@ -23,6 +23,14 @@ export default async function (sequelize) {
         type: DataTypes.STRING,
         allowNull: true,
       },
+      subtitle: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      url: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
     {
       tableName: 'yt_videos', //直接提供資料表名稱
