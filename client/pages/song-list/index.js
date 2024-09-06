@@ -16,6 +16,11 @@ export default function Index() {
   const [currentIndex, setCurrentIndex] = useState(null)
   const [isLoop, setIsLoop] = useState(false)
 
+  // 顯示 html 內容
+  const stripHtmlTags = (html) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    return doc.body.textContent || ''
+  }
   // 加载字幕
   const fetchSubtitles = async () => {
     try {
@@ -35,8 +40,9 @@ export default function Index() {
             vtt.WebVTT.StringDecoder()
           )
           parser.oncue = (cue) => {
-            const cleanedText = htmlToText(cue.text, { wordwrap: false })
-            cues.push(new VTTCue(cue.startTime, cue.endTime, cleanedText))
+            // const cleanedText = htmlToText(cue.text, { wordwrap: false })
+            // const cleanedText = stripHtmlTags(cue.text)
+            cues.push(new VTTCue(cue.startTime, cue.endTime, cue.text))
           }
           parser.parse(vttText)
           parser.flush()
@@ -150,16 +156,28 @@ export default function Index() {
         style={{ position: 'relative', marginTop: '10px', textAlign: 'center' }}
       >
         <div style={{ marginBottom: '5px' }}>
-          <strong>中文字幕:</strong> {currentSubtitle.chinese[0]}
+          <strong>中文字幕:</strong>
+          <div
+            dangerouslySetInnerHTML={{ __html: currentSubtitle.chinese[0] }}
+          />
         </div>
         <div style={{ marginBottom: '5px' }}>
-          <strong>中文下一句:</strong> {currentSubtitle.chinese[1]}
+          <strong>中文下一句:</strong>
+          <div
+            dangerouslySetInnerHTML={{ __html: currentSubtitle.chinese[1] }}
+          />
         </div>
         <div style={{ marginBottom: '5px' }}>
-          <strong>日文字幕:</strong> {currentSubtitle.japanese[0]}
+          <strong>日文字幕:</strong>
+          <div
+            dangerouslySetInnerHTML={{ __html: currentSubtitle.japanese[0] }}
+          />
         </div>
         <div style={{ marginBottom: '5px' }}>
-          <strong>日文下一句:</strong> {currentSubtitle.japanese[1]}
+          <strong>日文下一句:</strong>
+          <div
+            dangerouslySetInnerHTML={{ __html: currentSubtitle.japanese[1] }}
+          />
         </div>
         <div>
           <button

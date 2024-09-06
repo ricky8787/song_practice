@@ -1,4 +1,74 @@
-WEBVTT
+import fs from 'fs/promises'
+import path from 'path'
+
+// 获取当前工作目录
+const currentDirectory = process.cwd()
+
+// 生成相对路径
+const inputFilePath = path.join(
+  currentDirectory,
+  'subtitles',
+  'レオ-THE FIRST TAKE.vtt'
+)
+const outputFilePath = path.join(currentDirectory, 'output.txt')
+
+// 读取 VTT 文件
+const readVTTFile = async (filePath) => {
+  try {
+    const data = await fs.readFile(filePath, 'utf-8')
+    console.log('File content as string:', typeof data)
+    return data
+  } catch (error) {
+    console.error('Error reading file:', error)
+    throw error
+  }
+}
+
+const removeTimestamps = (vttContent) => {
+  const lines = vttContent.split('\n')
+  let inSubtitle = false
+  const result = []
+
+  lines.forEach((line, index) => {
+    console.log(`Line ${index}: ${line}`) // Debug output
+
+    const timestampRegex =
+      /^\d{2}:\d{2}:\d{2}\.\d{3} --> \d{2}:\d{2}:\d{2}\.\d{3}$/
+
+    if (timestampRegex.test(line)) {
+      // console.log(`Matched timestamp: ${line}`) // Debug output
+      inSubtitle = true
+    } else if (line.trim() === '') {
+      if (inSubtitle) {
+        inSubtitle = false
+        result.push('')
+      }
+    } else if (inSubtitle) {
+      result.push(line)
+    }
+  })
+
+  console.log('Processed Content:', result.join('\n')) // Debug output
+  return result.join('\n').trim()
+}
+
+// 主函数
+const processVTTFile = async (inputFilePath, outputFilePath) => {
+  try {
+    const vttContent = await readVTTFile(inputFilePath)
+    // console.log(vttContent)
+    const cleanedContent = removeTimestamps(vttContent)
+    console.log('cleand:' + cleanedContent)
+    await fs.writeFile(outputFilePath, cleanedContent, 'utf-8')
+    console.log('文件处理完成！')
+  } catch (error) {
+    console.error('处理文件时出错：', error)
+  }
+}
+const vttContent = await readVTTFile(inputFilePath)
+console.log(vttContent)
+console.log('File content as string:', typeof vttContent)
+const cleanedContent = removeTimestamps(`WEBVTT
 
 00:00:17.576 --> 00:00:19.655
 <ruby>聴<rt>き</rt>いてください「レオ」</ruby>
@@ -118,4 +188,8 @@ WEBVTT
 新しい誰かにまた名前つけて
 
 00:04:22.003 --> 00:04:23.033
-ありがとうございます
+ありがとうございます`)
+console.log('cleand:' + cleanedContent)
+
+// // 处理文件
+// processVTTFile(inputFilePath, outputFilePath)
