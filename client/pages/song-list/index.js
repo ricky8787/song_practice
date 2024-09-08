@@ -6,7 +6,8 @@ import { htmlToText } from 'html-to-text' // 需要安装 `html-to-text`
 import { MdOutlineReplay } from 'react-icons/md'
 
 export default function Index() {
-  const playerRef = useRef(null) // 创建一个 ref 来访问 player 实例
+  const playerRef = useRef(null)
+  const [isPlaying, setIsPlaying] = useState(true)
   const [subtitles, setSubtitles] = useState({ chinese: [], japanese: [] })
   const [currentTime, setCurrentTime] = useState(0)
   const [currentSubtitle, setCurrentSubtitle] = useState({
@@ -15,19 +16,14 @@ export default function Index() {
   })
   const [isLoop, setIsLoop] = useState(false)
   const [showHiragana, setShowHiragana] = useState(true)
-
-  // 顯示 html 內容
-  const stripHtmlTags = (html) => {
-    const doc = new DOMParser().parseFromString(html, 'text/html')
-    return doc.body.textContent || ''
-  }
+  
 
   // 加载字幕
   const fetchSubtitles = async () => {
     try {
       const [chineseResponse, japaneseResponse] = await Promise.all([
         fetch('/subtitles/レオ-THE FIRST TAKE-Chinese.vtt'),
-        fetch('/subtitles/レオ-THE FIRST TAKE.vtt'), // 这个包含 <rt> 标签
+        fetch('/subtitles/reo-new.vtt'), // 这个包含 <rt> 标签
       ])
 
       const chineseVttText = await chineseResponse.text()
@@ -92,6 +88,7 @@ export default function Index() {
 
     if (previousSubtitle) {
       playerRef.current.seekTo(previousSubtitle.startTime)
+      playerRef.current.getInternalPlayer().playVideo()
     }
   }
 
@@ -112,6 +109,7 @@ export default function Index() {
 
     if (nextSubtitle) {
       playerRef.current.seekTo(nextSubtitle.startTime)
+      playerRef.current.getInternalPlayer().playVideo()
     }
   }
 
@@ -130,6 +128,10 @@ export default function Index() {
   //處理要不要顯示振假名
   const handleToggleHiragana = () => {
     setShowHiragana(!showHiragana)
+  }
+
+  const handleTogglePlayPause = () => {
+    setIsPlaying(!isPlaying) // 切换播放状态
   }
 
   useEffect(() => {
@@ -158,11 +160,6 @@ export default function Index() {
       return ['', '']
     }
 
-    // setCurrentSubtitle({
-    //   chinese: getCurrentSubtitle(subtitles.chinese),
-    //   japanese: getCurrentSubtitle(subtitles.japanese),
-    // })
-
     // 判断是否有有效的字幕数据
     const hasSubtitles =
       subtitles.chinese.length > 0 &&
@@ -181,92 +178,135 @@ export default function Index() {
     }
   }, [currentTime, subtitles, showHiragana])
 
-  const renderAllSubtitles = (subtitles) => {
+  const renderAllSubtitles = (subtitles, currentTime) => {
     if (!subtitles || subtitles.length === 0) return null
-    return subtitles.map((subtitle, index) => (
-      <div key={index} dangerouslySetInnerHTML={{ __html: subtitle.text }} />
-    ))
+    const earlyPlaybackTime = 1
+    return subtitles.map((subtitle, index) => {
+      // 判断当前字幕是否是当前播放的字幕
+      const isActive =
+        currentTime >= subtitle.startTime - earlyPlaybackTime &&
+        currentTime <= subtitle.endTime - earlyPlaybackTime
+
+      return (
+        <div
+          key={index}
+          style={{
+            padding: '10px',
+            color: isActive ? 'blue' : '', // 高亮当前字幕
+            fontSize: isActive ? '24px' : '18px', // 当前字幕加大
+            transition: 'all 0.3s ease', // 添加平滑过渡效果
+          }}
+          dangerouslySetInnerHTML={{ __html: subtitle.text }}
+        />
+      )
+    })
   }
 
   const allSubtitles = useMemo(() => {
     // 确保 subtitles 和 showHiragana 存在
     if (subtitles && subtitles.japanese) {
       return renderAllSubtitles(
-        showHiragana ? subtitles.japanese.withRt : subtitles.japanese.withoutRt
+        showHiragana ? subtitles.japanese.withRt : subtitles.japanese.withoutRt,
+        currentTime
       )
     }
     return [] // 如果没有有效的字幕数据，返回空数组
-  }, [subtitles, showHiragana])
+  }, [subtitles, showHiragana, currentTime])
 
   return (
     <>
-      <div>
-        <ReactPlayer
-          ref={playerRef}
-          url="https://www.youtube.com/watch?v=cpuT1AWuRx8"
-          controls
-          width="640px"
-          height="360px"
-          playing={true}
-          loop={isLoop}
-          onProgress={({ playedSeconds }) => setCurrentTime(playedSeconds)}
-        />
-      </div>
-
-      <div
-        style={{ position: 'relative', marginTop: '10px', textAlign: 'center' }}
-      >
-        <div style={{ marginBottom: '5px' }}>
-          <strong>中文字幕:</strong>
+      <div className="wrapper">
+        <div className="left-wrapper">
+          <div>
+            <ReactPlayer
+              ref={playerRef}
+              url="https://www.youtube.com/watch?v=cpuT1AWuRx8"
+              controls={false}
+              width="640px"
+              height="360px"
+              playing={isPlaying}
+              loop={isLoop}
+              onProgress={({ playedSeconds }) => setCurrentTime(playedSeconds)}
+            />
+          </div>
           <div
-            dangerouslySetInnerHTML={{ __html: currentSubtitle.chinese[0] }}
-          />
-        </div>
-        <div style={{ marginBottom: '5px' }}>
-          <strong>中文下一句:</strong>
-          <div
-            dangerouslySetInnerHTML={{ __html: currentSubtitle.chinese[1] }}
-          />
-        </div>
-        <div style={{ marginBottom: '5px' }}>
-          <strong>日文字幕:</strong>
-          <div
-            dangerouslySetInnerHTML={{ __html: currentSubtitle.japanese[0] }}
-          />
-        </div>
-        <div style={{ marginBottom: '5px' }}>
-          <strong>日文下一句:</strong>
-          <div
-            dangerouslySetInnerHTML={{ __html: currentSubtitle.japanese[1] }}
-          />
-        </div>
-        <div>
-          <button
-            onClick={handleSkipToPrevious}
-            style={{ marginRight: '10px' }}
+            style={{
+              position: 'relative',
+              marginTop: '10px',
+              textAlign: 'center',
+            }}
           >
-            上一句
-          </button>
-          <button onClick={handleSkipToNext} style={{ marginRight: '10px' }}>
-            下一句
-          </button>
-          <button onClick={handleToggleLoop}>
-            <MdOutlineReplay style={{ color: isLoop ? 'red' : '' }} />
-          </button>
-          <button
-            onClick={handleToggleHiragana}
-            style={{ color: showHiragana ? 'red' : '' }}
-          >
-            a
-          </button>
+            <div style={{ marginBottom: '5px' }}>
+              <strong>中文字幕:</strong>
+              <div
+                dangerouslySetInnerHTML={{ __html: currentSubtitle.chinese[0] }}
+              />
+            </div>
+            <div style={{ marginBottom: '5px' }}>
+              <strong>中文下一句:</strong>
+              <div
+                dangerouslySetInnerHTML={{ __html: currentSubtitle.chinese[1] }}
+              />
+            </div>
+            <div style={{ marginBottom: '5px' }}>
+              <strong>日文字幕:</strong>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: currentSubtitle.japanese[0],
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: '5px' }}>
+              <strong>日文下一句:</strong>
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: currentSubtitle.japanese[1],
+                }}
+              />
+            </div>
+            <div>
+              <button
+                onClick={handleSkipToPrevious}
+                style={{ marginRight: '10px' }}
+              >
+                上一句
+              </button>
+              <button
+                onClick={handleSkipToNext}
+                style={{ marginRight: '10px' }}
+              >
+                下一句
+              </button>
+              <button onClick={handleToggleLoop}>
+                <MdOutlineReplay style={{ color: isLoop ? 'red' : '' }} />
+              </button>
+              <button
+                onClick={handleToggleHiragana}
+                style={{ color: showHiragana ? 'red' : '' }}
+              >
+                a
+              </button>
+              <button onClick={handleTogglePlayPause}>播放/暫停</button>
+            </div>
+          </div>
+          <div>
+            <h3>全部日文字幕:</h3>
+            <div>
+              <div>{allSubtitles}</div>
+            </div>
+          </div>
+        </div>
+        <div className="right-wrapper">
+          <div>字幕滾動區</div>
         </div>
       </div>
-      <div>
-        <h3>全部日文字幕:</h3>
-        <div>
-          <div>{allSubtitles}</div>
-        </div>
-      </div>
+      <style jsx>
+        {`
+          .wrapper {
+            display: flex;
+          }
+        `}
+      </style>
     </>
   )
 }
