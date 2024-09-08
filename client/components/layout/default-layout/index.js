@@ -11,9 +11,9 @@ export default function DefaultLayout({ title = 'Rensyuu', children }) {
 
   return (
     <>
-      <SidebarMenu />
-      <main className="flex-shrink-0 mt-3">
-        <div className="container">
+      <main className="main">
+        <SidebarMenu />
+        <div className="container-wrapper">
           {/* <NextBreadCrumb isHomeIcon isChevron bgClass="" /> */}
           {children}
         </div>

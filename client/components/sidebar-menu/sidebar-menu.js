@@ -10,7 +10,7 @@ export default function SidebarMenu() {
   }
   return (
     <>
-      <div className="header">
+      <div >
         <button
           className={open ? 'open open-button' : 'open-button'}
           onClick={toggleOpen}
@@ -23,6 +23,8 @@ export default function SidebarMenu() {
           </a>
         </button>
       </div>
+
+      {/* <div className={open ? '' : 'header'}></div> */}
 
       {/* Navbar */}
       <nav id="navbar" className={open ? 'open' : ''}>

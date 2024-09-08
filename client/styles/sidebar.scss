@@ -121,6 +121,7 @@ a:visited {
   border: none;
   display: grid;
   place-items: center;
+  position: absolute;
 }
 
 .open-button:focus {
@@ -209,6 +210,26 @@ ol {
   margin: 1em 0;
 }
 
+/* =======
+    Ruby
+   ======= */
+
+// ruby {
+//   display: inline-table;
+//   position: relative;
+// }
+rp {
+  position: relative;
+  line-height: 1.2;
+}
+rt {
+  line-height: 1;
+  margin-bottom: 5px;
+  color: #999;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 10px;
+}
 /* =======
     Forms
    ======= */
@@ -341,8 +362,8 @@ select {
   top: 0;
   padding: 0;
   width: 0;
-  height: 100vh;
-  position: fixed;
+  height: 100%;
+  // position: fixed;
   background-color: hsl(var(--background-secondary));
   transition: width 0.3s cubic-bezier(var(--transition-main), 1);
   overflow-y: auto;
@@ -350,6 +371,7 @@ select {
 }
 #navbar.open {
   width: 16em;
+  height: 100%;
 }
 #navbar::-webkit-scrollbar-track {
   background-color: hsl(var(--background-secondary));
