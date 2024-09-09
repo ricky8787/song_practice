@@ -7,9 +7,9 @@ export default async function (sequelize) {
     'YT_Videos',
     {
       id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         primaryKey: true,
-        autoIncrement: true,
+        autoIncrement: false,
       },
       title: {
         type: DataTypes.STRING,

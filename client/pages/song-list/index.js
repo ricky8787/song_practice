@@ -31,7 +31,7 @@ export default function Index() {
 
   return (
     <>
-      <h1>歌曲列表</h1>
+      <span>歌曲列表:</span>
       {videos.map((video, i) => {
         return <SongListCard key={i} video={video} />
       })}

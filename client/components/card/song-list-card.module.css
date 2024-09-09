@@ -1,0 +1,25 @@
+.cardWrapper{
+    background : rgb(195, 195, 195);
+    width: 600px;
+    height: 100px;
+    margin-bottom: 10px;
+    display:flex;
+    gap:5px;
+    transition: all 0.5s ease;
+}
+
+.cardWrapper:hover{
+    background : gray;
+    transform: scale(1.1);
+}
+
+.songImg{
+    height: 100px;
+    width: 160px;
+    object-fit: cover;
+}
+
+.contentWrapper{
+    display:flex;
+    flex-direction: column;
+}

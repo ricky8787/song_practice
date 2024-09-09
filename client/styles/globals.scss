@@ -45,29 +45,6 @@ $card-height: 100%;
   margin-top: 70px;
 }
 
-body {
-  font-family: 'Noto Sans TC Regular', Helvetica, Arial, 'PingFang TC',
-    '苹方-繁', 'Heiti TC', '黑體-繁', 'Microsoft JhengHei', '微軟正黑體',
-    // Cross-platform generic font family (default user interface font)
-    system-ui,
-    // Safari for macOS and iOS (San Francisco)
-    -apple-system,
-    // Windows
-    'Segoe UI',
-    // Android
-    Roboto,
-    // Basic web fallback
-    'Helvetica Neue',
-    Arial,
-    // Linux
-    'Noto Sans',
-    'Liberation Sans',
-    // Sans serif fallback
-    sans-serif,
-    // Emoji fonts
-    'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-}
 
 .form-member {
   max-width: 330px;

@@ -12,9 +12,6 @@ import { Op } from 'sequelize'
 import sequelize from '#configs/db.js'
 const { YT_Videos } = sequelize.models
 
-// 驗証加密密碼字串用
-import { compareHash } from '#db-helpers/password-hash.js'
-
 // 上傳檔案用使用multer
 import path from 'path'
 import multer from 'multer'
@@ -32,6 +29,7 @@ const storage = multer.diskStorage({
     callback(null, newFilename + path.extname(file.originalname))
   },
 })
+
 const upload = multer({ storage: storage })
 // multer的設定值 - END
 

@@ -363,6 +363,7 @@ select {
   padding: 0;
   width: 0;
   height: 100%;
+  min-height:100vh;
   // position: fixed;
   background-color: hsl(var(--background-secondary));
   transition: width 0.3s cubic-bezier(var(--transition-main), 1);

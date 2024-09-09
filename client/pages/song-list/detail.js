@@ -1,14 +1,21 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
+import { useRouter } from 'next/router'
 import ReactPlayer from 'react-player/youtube'
 import * as vtt from 'videojs-vtt.js'
 import { MdOutlineReplay } from 'react-icons/md'
 import Subtitle from '@/components/subtitle/all-subtitles'
 
-export default function Index() {
+export default function Detail() {
   const playerRef = useRef(null)
   const subtitleRef = useRef(null)
   const [isPlaying, setIsPlaying] = useState(true)
-  const [subtitles, setSubtitles] = useState({ chinese: [], japanese: [] })
+  const [subtitles, setSubtitles] = useState({
+    chinese: [],
+    japanese: {
+      withRt: [],
+      withoutRt: [],
+    },
+  })
   const [currentTime, setCurrentTime] = useState(0)
   const [currentSubtitleIndex, setCurrentSubtitleIndex] = useState(0)
   const [isLoop, setIsLoop] = useState(false)
@@ -17,14 +24,13 @@ export default function Index() {
     chinese: '',
     japanese: '',
   })
-  const [isHovered, setIsHovered] = useState(false) // 控制hover效果
 
   // 加载字幕
   const fetchSubtitles = async () => {
     try {
       const [chineseResponse, japaneseResponse] = await Promise.all([
         fetch('/subtitles/レオ-THE FIRST TAKE-Chinese.vtt'),
-        fetch('/subtitles/reo-new.vtt'), // 这个包含 <rt> 标签
+        fetch('/subtitles/レオ-THE FIRST TAKE.vtt'), // 这个包含 <rt> 标签
       ])
 
       const chineseVttText = await chineseResponse.text()
@@ -145,6 +151,17 @@ export default function Index() {
     setIsPlaying(!isPlaying) // 切换播放状态
   }
 
+  const router = useRouter()
+
+  useEffect(() => {
+    if (router.isReady) {
+      console.log(router.query.id)
+    }
+
+    // 以下為省略eslint檢查一行
+    // eslint-disable-next-line
+  }, [router.isReady])
+
   useEffect(() => {
     fetchSubtitles()
   }, [showHiragana])
@@ -219,11 +236,7 @@ export default function Index() {
   }
 
   const allSubtitles = useMemo(() => {
-    if (
-      subtitles &&
-      subtitles.japanese &&
-      subtitles.japanese.withoutRt.length > 0
-    ) {
+    if (subtitles && subtitles.japanese) {
       return (
         showHiragana ? subtitles.japanese.withRt : subtitles.japanese.withoutRt
       ).map((subtitle, index) => (

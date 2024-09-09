@@ -28,6 +28,10 @@ export const getVideos = async (id) => {
   }
 }
 
+export const getVideoInfo = async (id = 0) => {
+  return await axiosInstance.get(`/videos/${id}`)
+}
+
 export const postVideoInfo = async (video = {}) => {
   return await axiosInstance.post('/videos', video)
 }
