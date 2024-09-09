@@ -219,7 +219,11 @@ export default function Index() {
   }
 
   const allSubtitles = useMemo(() => {
-    if (subtitles && subtitles.japanese) {
+    if (
+      subtitles &&
+      subtitles.japanese &&
+      subtitles.japanese.withoutRt.length > 0
+    ) {
       return (
         showHiragana ? subtitles.japanese.withRt : subtitles.japanese.withoutRt
       ).map((subtitle, index) => (

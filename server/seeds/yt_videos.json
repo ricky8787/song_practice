@@ -1,19 +1,21 @@
 [
   {
     "id": 1,
-    "title": "【original】#あくあ色ぱれっと【ホロライブ/湊あくあ】",
+    "title": "優里 - レオ / THE FIRST TAKE",
     "img_path": "https://i.ytimg.com/vi/6bnaBnd4kyU/mqdefault.jpg",
-    "duration": "PT4M11S",
-    "subtitle": "/subtitles/Aqua.vtt",
-    "url": "https://www.youtube.com/watch?v=6bnaBnd4kyU"
+    "duration": "PT4M31S",
+    "subtitle_zh": "/subtitles/レオ-THE FIRST TAKE-Chinese.vtt",
+    "subtitle_jp": "/subtitles/レオ-THE FIRST TAKE.vtt",
+    "url": "https://www.youtube.com/watch?v=cpuT1AWuRx8"
   },
   {
     "id": 2,
-    "title": "【original】#あくあ色ぱれっと【ホロライブ/湊あくあ】",
-    "img_path": "https://i.ytimg.com/vi/6bnaBnd4kyU/mqdefault.jpg",
-    "duration": "PT4M11S",
-    "subtitle": "/subtitles/Aqua.vtt",
-    "url": "https://www.youtube.com/watch?v=6bnaBnd4kyU"
+    "title": "優里 - ベテルギウス / THE FIRST TAKE",
+    "img_path": "https://i.ytimg.com/vi/-n790YakYKc/mqdefault.jpg",
+    "duration": "PT4M30S",
+    "subtitle_zh": "/subtitles/レオ-THE FIRST TAKE-Chinese.vtt",
+    "subtitle_jp": "/subtitles/レオ-THE FIRST TAKE.vtt",
+    "url": "https://www.youtube.com/watch?v=-n790YakYKc"
   }
 
 ]

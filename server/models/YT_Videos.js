@@ -23,7 +23,11 @@ export default async function (sequelize) {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      subtitle: {
+      subtitle_zh: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      subtitle_jp: {
         type: DataTypes.TEXT,
         allowNull: true,
       },
